@@ -1,14 +1,23 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from pymongo import MongoClient
 from flask_bcrypt import Bcrypt
 
+# ---------------- APP CONFIG ----------------
+
 app = Flask(__name__)
-app.secret_key = "secret123"
+
+# Secret key from environment variable
+app.secret_key = os.environ.get("SECRET_KEY", "default_secret")
 
 bcrypt = Bcrypt(app)
 
 # ---------------- MONGODB CONNECTION ----------------
-client = MongoClient("mongodb://localhost:27017/")
+
+MONGO_URI = os.environ.get("MONGO_URI")
+
+client = MongoClient(MONGO_URI)
+
 db = client["chatbotDB"]
 
 users = db["users"]
@@ -16,12 +25,14 @@ dataset = db["troubleshooting_data"]
 chat_history = db["chat_history"]
 
 # ---------------- STOPWORDS ----------------
+
 stopwords = [
 "is","the","a","an","my","to","of","and","in","on","for",
 "i","am","are","was","were","be","been","being","it","this"
 ]
 
 # ---------------- COMMAND SUGGESTIONS ----------------
+
 commands = {
     "Physical": "Check cables and hardware connections.",
     "Data Link": "Try resetting network adapter.",
@@ -33,16 +44,19 @@ commands = {
 }
 
 # ---------------- LOGIN PAGE ----------------
+
 @app.route("/")
 def login():
     return render_template("login.html")
 
 # ---------------- REGISTER PAGE ----------------
+
 @app.route("/register")
 def register():
     return render_template("register.html")
 
 # ---------------- REGISTER USER ----------------
+
 @app.route("/register_user", methods=["POST"])
 def register_user():
 
@@ -61,6 +75,7 @@ def register_user():
     return redirect(url_for("login"))
 
 # ---------------- LOGIN USER ----------------
+
 @app.route("/login_user", methods=["POST"])
 def login_user():
 
@@ -76,6 +91,7 @@ def login_user():
     return "Invalid login credentials"
 
 # ---------------- CHATBOT PAGE ----------------
+
 @app.route("/chatbot")
 def chatbot():
 
@@ -85,19 +101,21 @@ def chatbot():
     return render_template("chatbot.html")
 
 # ---------------- CHATBOT LOGIC ----------------
+
 def get_response(user_input):
 
     words = user_input.lower().split()
     words = [word for word in words if word not in stopwords]
 
-    problems = dataset.find()
+    # Optimized query (fetch only required fields)
+    problems = dataset.find({}, {"keywords":1, "solution":1, "layer":1})
 
     best_match = None
     best_score = 0
 
     for problem in problems:
 
-        keywords = problem["keywords"]
+        keywords = problem.get("keywords", [])
 
         score = 0
 
@@ -128,6 +146,7 @@ def get_response(user_input):
     }
 
 # ---------------- CHAT API ----------------
+
 @app.route("/chat", methods=["POST"])
 def chat():
 
@@ -146,6 +165,7 @@ def chat():
     return jsonify(result)
 
 # ---------------- HISTORY PAGE ----------------
+
 @app.route("/history")
 def history():
 
@@ -157,11 +177,13 @@ def history():
     return render_template("history.html", history=history_data)
 
 # ---------------- LOGOUT ----------------
+
 @app.route("/logout")
 def logout():
     session.pop("user", None)
     return redirect(url_for("login"))
 
-# ---------------- RUN APP ----------------
+# ---------------- LOCAL RUN ----------------
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
