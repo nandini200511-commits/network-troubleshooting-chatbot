@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Network Troubleshooting Assistant</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0b0b0b;
+color:white;
+text-align:center;
+padding:40px;
+}
+
+h1{
+margin-bottom:30px;
+}
+
+textarea{
+width:500px;
+height:120px;
+padding:10px;
+border-radius:8px;
+border:none;
+}
+
+button{
+padding:10px 25px;
+margin-top:10px;
+background:#ff9800;
+border:none;
+border-radius:20px;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{
+background:#ffb74d;
+}
+
+#result{
+margin-top:30px;
+padding:20px;
+background:#1a1a1a;
+border-radius:10px;
+display:none;
+width:500px;
+margin-left:auto;
+margin-right:auto;
+}
+
+.logout{
+position:absolute;
+top:20px;
+right:30px;
+color:#ff9800;
+}
+
+.history{
+position:absolute;
+top:20px;
+right:120px;
+color:#ff9800;
+text-decoration:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<a class="history" href="/history">History</a>
+<a class="logout" href="/logout">Logout</a>
+
+<h1>Network Troubleshooting Chatbot</h1>
+
+<p>Describe your network issue below</p>
+
+<textarea id="problem" placeholder="Example: wifi not connecting"></textarea>
+
+<br>
+
+<button onclick="solveProblem()">Get Solution</button>
+
+<div id="result"></div>
+
+<script>
+
+async function solveProblem(){
+
+let input=document.getElementById("problem").value;
+
+if(input===""){
+alert("Please describe your problem");
+return;
+}
+
+let response=await fetch("/chat",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({message:input})
+
+});
+
+let data=await response.json();
+
+let box=document.getElementById("result");
+
+box.style.display="block";
+
+box.innerHTML=
+"<b>OSI Layer:</b> "+data.layer+"<br><br>"+
+"<b>Solution:</b> "+data.solution+"<br><br>"+
+"<b>Suggested Command:</b> "+data.command;
+
+}
+
+document.getElementById("problem")
+.addEventListener("keypress",function(e){
+
+if(e.key==="Enter"){
+e.preventDefault();
+solveProblem();
+}
+
+});
+
+</script>
+
+</body>
+</html>

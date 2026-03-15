@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Chat History</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0b0b0b;
+color:white;
+padding:40px;
+text-align:center;
+}
+
+table{
+margin:auto;
+border-collapse:collapse;
+width:80%;
+background:#1a1a1a;
+}
+
+th,td{
+padding:12px;
+border:1px solid #333;
+}
+
+th{
+background:#ff9800;
+}
+
+a{
+color:#ff9800;
+text-decoration:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Chat History</h1>
+
+<a href="/chatbot">⬅ Back to Chatbot</a>
+
+<br><br>
+
+<table>
+
+<tr>
+<th>User</th>
+<th>Query</th>
+<th>Layer</th>
+<th>Solution</th>
+</tr>
+
+{% for chat in history %}
+
+<tr>
+<td>{{ chat.user }}</td>
+<td>{{ chat.query }}</td>
+<td>{{ chat.layer }}</td>
+<td>{{ chat.response }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>
